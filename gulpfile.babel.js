@@ -2,6 +2,7 @@
 
 import args from 'yargs';
 import babel from 'gulp-babel';
+import browser from 'browser-sync';
 import concat from 'gulp-concat';
 import del from 'del';
 import gulp from 'gulp';
@@ -15,7 +16,15 @@ import sass from 'gulp-sass';
 import uglify from 'gulp-uglify';
 import util from 'gulp-util';
 
+
+// Import configurations
+import config from './gulp-config';
+
+
+// Prepare production state and browser sync
 var production = args.argv.production;
+var sync = browser.create();
+
 
 gulp.task('clean', (callback) =>
     del('./assets/build', callback)
@@ -51,8 +60,9 @@ gulp.task('scss', () => {
 });
 
 gulp.task('watch', () => {
-    gulp.watch('./assets/src/js/**/*.js', ['js']);
-    gulp.watch('./assets/src/scss/**/*.scss', ['scss']);
+    sync.init({proxy: config.proxy});
+    gulp.watch('./assets/src/js/**/*.js', ['js']).on('change', sync.reload);
+    gulp.watch('./assets/src/scss/**/*.scss', ['scss']).on('change', sync.reload);
 });
 
 gulp.task('default', ['clean', 'js', 'scss', 'watch']);
