@@ -8,6 +8,7 @@
     "gulp-babel": "^5.2.1",
     "gulp-concat": "^2.6.0",
     "gulp-if": "^1.2.5",
+    "gulp-image-data-uri": "^1.1.0",
     "gulp-jshint": "^1.11.2",
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.0.1",

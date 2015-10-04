@@ -4,6 +4,7 @@ import args from 'yargs';
 import babel from 'gulp-babel';
 import browser from 'browser-sync';
 import concat from 'gulp-concat';
+import dataUri from 'gulp-image-data-uri';
 import del from 'del';
 import gulp from 'gulp';
 import iff from 'gulp-if';
@@ -27,15 +28,21 @@ var sync = browser.create();
 
 
 gulp.task('clean', (callback) =>
-    del('./assets/build', callback)
+    del('./build', callback)
 );
 
+gulp.task('vendor-js', () => {
+    gulp.src(config.vendorJs.src)
+        .pipe(plumber({errorHandler: onError}))
+        .pipe(babel())
+        .pipe(concat('vendor.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest(config.vendorJs.dest))
+        .pipe(notify('Vendor JavaScript complete'));
+});
+
 gulp.task('js', () => {
-    gulp.src([
-            './assets/src/js/**/*.js',
-            './assets/src/js/app.js'
-            // ...
-        ])
+    gulp.src(config.js.src)
         .pipe(plumber({errorHandler: onError}))
         .pipe(jshint())
         .pipe(jshint.reporter('jshint-stylish'))
@@ -44,28 +51,38 @@ gulp.task('js', () => {
         .pipe(concat('app.js'))
         .pipe(uglify())
         .pipe(iff( ! production, maps.write('./')))
-        .pipe(gulp.dest('./assets/build'))
+        .pipe(gulp.dest(config.js.dest))
         .pipe(notify('JavaScript complete'));
 });
 
 gulp.task('scss', () => {
-    gulp.src('./assets/src/scss/app.scss')
+    gulp.src(config.scss.src)
         .pipe(plumber({errorHandler: onError}))
         .pipe(maps.init())
         .pipe(sass({outputStyle: 'compressed'}))
         .pipe(prefix('last 2 versions', 'IE 9', 'Firefox ESR'))
         .pipe(iff( ! production, maps.write('./')))
-        .pipe(gulp.dest('./assets/build'))
+        .pipe(gulp.dest(config.scss.dest))
         .pipe(notify('SCSS complete'));
 });
 
-gulp.task('watch', () => {
-    sync.init({proxy: config.proxy});
-    gulp.watch('./assets/src/js/**/*.js', ['js']).on('change', sync.reload);
-    gulp.watch('./assets/src/scss/**/*.scss', ['scss']).on('change', sync.reload);
+gulp.task('svg', () => {
+    gulp.src(config.svg.src)
+        .pipe(plumber({errorHandler: onError}))
+        .pipe(dataUri(config.svg.options))
+        .pipe(concat('icons.css'))
+        .pipe(gulp.dest(config.svg.dest))
+        .pipe(notify('SVG complete'));
 });
 
-gulp.task('default', ['clean', 'js', 'scss', 'watch']);
+gulp.task('watch', () => {
+    sync.init(config.proxy);
+    gulp.watch(config.js.watch, ['js']).on('change', sync.reload);
+    gulp.watch(config.scss.watch, ['scss']).on('change', sync.reload);
+    gulp.watch(config.svg.watch, ['svg']).on('change', sync.reload);
+});
+
+gulp.task('default', ['clean', 'vendor-js', 'js', 'scss', 'svg', 'watch']);
 
 function onError(err) {
     util.beep();
