@@ -1,0 +1,7 @@
+# Ignore asset and build directories
+/assets/*
+/build/*
+
+# Ignore external dependencies
+/node_modules
+/vendor
