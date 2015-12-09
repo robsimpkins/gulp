@@ -5,6 +5,7 @@ import babel from 'gulp-babel';
 import browserSync from 'browser-sync';
 import concat from 'gulp-concat';
 import imageDataUri from 'gulp-image-data-uri';
+import imageMin from 'gulp-imagemin';
 import del from 'del';
 import gulp from 'gulp';
 import iff from 'gulp-if';
@@ -28,7 +29,7 @@ var sync = browserSync.create();
 
 
 gulp.task('clean', (callback) =>
-    del('./build', callback)
+    del(config.tasks.clean.src, callback)
 );
 
 gulp.task('js', () => {
@@ -67,9 +68,18 @@ gulp.task('scss', () => {
         .pipe(notify('SCSS complete'));
 });
 
+gulp.task('image', () => {
+    gulp.src(config.tasks.image.src)
+        .pipe(plumber({errorHandler: onError}))
+        .pipe(imageMin(config.plugins.imageMin))
+        .pipe(gulp.dest(config.tasks.image.dest))
+        .pipe(notify('Image complete'));
+});
+
 gulp.task('svg', () => {
     gulp.src(config.tasks.svg.src)
         .pipe(plumber({errorHandler: onError}))
+        .pipe(imageMin(config.plugins.imageMin))
         .pipe(imageDataUri(config.plugins.imageDataUri))
         .pipe(concat(config.tasks.svg.concat))
         .pipe(gulp.dest(config.tasks.svg.dest))
@@ -83,7 +93,7 @@ gulp.task('watch', () => {
     gulp.watch(config.tasks.svg.watch, ['svg']).on('change', sync.reload);
 });
 
-gulp.task('default', ['clean', 'vendor-js', 'js', 'svg', 'scss', 'watch']);
+gulp.task('default', ['clean', 'vendor-js', 'js', 'image', 'svg', 'scss', 'watch']);
 
 function onError(err) {
     util.beep();

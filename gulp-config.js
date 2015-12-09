@@ -1,6 +1,13 @@
 module.exports = {
     // Gulp tasks
     tasks: {
+        clean: {
+            src: ['./build/svg', './build']
+        },
+        image: {
+            src: './assets/images/**.*',
+            dest: './build/images'
+        },
         js: {
             src: [
                 './assets/js/**/*.js',
